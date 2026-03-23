@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Omkar Trading AI | Voice & Image Assistant</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Poppins', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      color: #eef2ff;
+    }
+
+    /* glassmorphism core */
+    .glass-panel {
+      background: rgba(15, 25, 45, 0.55);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(72, 187, 120, 0.25);
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(72, 187, 120, 0.2);
+    }
+
+    .app-container {
+      max-width: 1300px;
+      width: 100%;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.8rem;
+      border-bottom: 1px solid rgba(72, 187, 120, 0.3);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #2dd4bf, #10b981);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .brand h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      background: linear-gradient(120deg, #f0f9ff, #a7f3d0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    .badge {
+      background: rgba(16, 185, 129, 0.2);
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      border: 1px solid #2dd4bf;
+      color: #b3f0e0;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(72, 187, 120, 0.5);
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #e2e8f0;
+      font-size: 0.8rem;
+      backdrop-filter: blur(4px);
+    }
+
+    .btn-secondary:hover {
+      background: #2d3748;
+      border-color: #2dd4bf;
+      color: white;
+      transform: scale(0.97);
+    }
+
+    /* chat area */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      scroll-behavior: smooth;
+    }
+
+    /* message bubbles */
+    .message {
+      display: flex;
+      max-width: 85%;
+      animation: fadeSlideUp 0.25s ease-out;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      justify-content: flex-end;
+    }
+
+    .assistant-message {
+      align-self: flex-start;
+    }
+
+    .bubble {
+      padding: 0.9rem 1.2rem;
+      border-radius: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-message .bubble {
+      background: linear-gradient(135deg, #0f2b2a, #0a1f1e);
+      border: 1px solid #2dd4bf;
+      border-bottom-right-radius: 0.4rem;
+      color: #ccf0e6;
+    }
+
+    .assistant-message .bubble {
+      background: rgba(20, 30, 45, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(72, 187, 120, 0.5);
+      border-bottom-left-radius: 0.4rem;
+    }
+
+    .message-content {
+      word-break: break-word;
+    }
+
+    .message-content h3 {
+      margin-top: 0.5rem;
+      margin-bottom: 0.3rem;
+      color: #6ee7b7;
+      font-size: 1rem;
+    }
+
+    .message-content ul, .message-content p {
+      margin: 0.4rem 0;
+    }
+
+    .message-content ul {
+      padding-left: 1.2rem;
+    }
+
+    .image-preview {
+      max-width: 180px;
+      max-height: 140px;
+      border-radius: 12px;
+      margin-top: 8px;
+      border: 1px solid #2dd4bf;
+      background: #00000055;
+    }
+
+    /* input bar */
+    .input-area {
+      padding: 1rem 1.5rem 1.3rem;
+      border-top: 1px solid rgba(72, 187, 120, 0.3);
+      background: rgba(5, 10, 20, 0.5);
+      backdrop-filter: blur(8px);
+    }
+
+    .input-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .text-input-group {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 2rem;
+      border: 1px solid rgba(72, 187, 120, 0.5);
+      display: flex;
+      align-items: center;
+      padding: 0.4rem 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .text-input-group:focus-within {
+      border-color: #2dd4bf;
+      box-shadow: 0 0 8px rgba(45, 212, 191, 0.4);
+    }
+
+    #textInput {
+      background: transparent;
+      border: none;
+      padding: 0.7rem 0.5rem;
+      color: white;
+      font-size: 0.95rem;
+      width: 100%;
+      outline: none;
+    }
+
+    .icon-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .icon-btn:hover {
+      background: #2dd4bf;
+      color: #0a0f1a;
+      transform: scale(1.02);
+    }
+
+    .mic-active {
+      background: #ef4444;
+      box-shadow: 0 0 12px #ef4444;
+      animation: pulseGlow 1.2s infinite;
+    }
+
+    .status-badge {
+      font-size: 0.7rem;
+      margin-left: 12px;
+      background: #00000066;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+    }
+
+    #uploadPreview {
+      max-width: 60px;
+      max-height: 60px;
+      border-radius: 10px;
+      margin-right: 8px;
+      border: 1px solid #2dd4bf;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Scrollbar */
+    .chat-messages::-webkit-scrollbar {
+      width: 5px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: #1e293b;
+      border-radius: 10px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #2dd4bf;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 680px) {
+      .message { max-width: 95%; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-container glass-panel">
+  <div class="header">
+    <div class="brand">
+      <div class="logo">📈</div>
+      <h1>Omkar Trading AI</h1>
+      <div class="badge">Alpha | Voice + Vision</div>
+    </div>
+    <div class="action-buttons">
+      <button id="newChatBtn" class="btn-secondary">➕ New Chat</button>
+      <button id="resetAppBtn" class="btn-secondary">🔄 Reset App</button>
+    </div>
+  </div>
+
+  <div id="chatMessages" class="chat-messages"></div>
+
+  <div class="input-area">
+    <div class="input-container">
+      <button id="micButton" class="icon-btn" title="Voice input">🎙️</button>
+      <div class="text-input-group">
+        <input type="text" id="textInput" placeholder="Ask about BTC, support/resistance, market structure..." autocomplete="off">
+        <div id="liveTranscript" style="font-size: 0.7rem; color:#a3e4d4; padding-right: 6px;"></div>
+      </div>
+      <input type="file" id="imageUpload" accept="image/jpeg, image/png, image/jpg" style="display: none;">
+      <button id="uploadImageBtn" class="icon-btn" title="Upload chart">🖼️</button>
+      <button id="sendBtn" class="icon-btn" title="Send">➤</button>
+    </div>
+    <div style="display: flex; align-items: center; margin-top: 8px; gap: 8px; flex-wrap: wrap;">
+      <span id="statusMsg" class="status-badge">🟢 Ready</span>
+      <div id="imagePreviewContainer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- DOM Elements ----------
+  const chatDiv = document.getElementById('chatMessages');
+  const textInput = document.getElementById('textInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const micBtn = document.getElementById('micButton');
+  const newChatBtn = document.getElementById('newChatBtn');
+  const resetAppBtn = document.getElementById('resetAppBtn');
+  const uploadImageBtn = document.getElementById('uploadImageBtn');
+  const imageUploadInput = document.getElementById('imageUpload');
+  const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+  const statusSpan = document.getElementById('statusMsg');
+  const liveTranscriptSpan = document.getElementById('liveTranscript');
+
+  // ---------- State ----------
+  let messages = [];          // { role: 'user' or 'assistant', content: string, image?: string }
+  let currentImageBase64 = null;
+  let isListening = false;
+  let recognition = null;
+  let currentUtterance = null;
+
+  // ---------- Speech Recognition Setup ----------
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+  }
+
+  // ---------- Load from localStorage ----------
+  function loadFromStorage() {
+    const stored = localStorage.getItem('omkar_trading_chat');
+    if (stored) {
+      try {
+        messages = JSON.parse(stored);
+        if (!Array.isArray(messages)) messages = [];
+        renderMessages();
+      } catch(e) { messages = []; }
+    }
+    if (!messages.length) {
+      // welcome message
+      messages.push({
+        role: 'assistant',
+        content: `**Omkar AI** at your service.\n\nI analyze **stocks, crypto, forex** with technical insights, risk metrics, and market structure.\n\n*Upload a chart, use voice, or ask me anything trading-related.*`
+      });
+      saveToStorage();
+      renderMessages();
+    } else {
+      renderMessages();
+    }
+  }
+
+  function saveToStorage() {
+    localStorage.setItem('omkar_trading_chat', JSON.stringify(messages));
+  }
+
+  // Render chat with markdown-style formatting (simple)
+  function renderMessages() {
+    chatDiv.innerHTML = '';
+    messages.forEach(msg => {
+      const isUser = msg.role === 'user';
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      // parse simple markdown: headings and bullet lists
+      let formatted = msg.content;
+      if (!isUser) {
+        formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+        formatted = formatted.replace(/^## (.*?)$/gm, '<h3>$1</h3>');
+        formatted = formatted.replace(/^- (.*?)$/gm, '• $1<br>');
+        formatted = formatted.replace(/\n/g, '<br>');
+      } else {
+        formatted = formatted.replace(/\n/g, '<br>');
+      }
+      contentDiv.innerHTML = formatted;
+      if (msg.image && isUser) {
+        const img = document.createElement('img');
+        img.src = msg.image;
+        img.className = 'image-preview';
+        img.alt = 'chart preview';
+        contentDiv.appendChild(img);
+      }
+      bubble.appendChild(contentDiv);
+      messageDiv.appendChild(bubble);
+      chatDiv.appendChild(messageDiv);
+    });
+    chatDiv.scrollTop = chatDiv.scrollHeight;
+  }
+
+  // Add message and persist
+  function addMessage(role, content, imageBase64 = null) {
+    const msg = { role, content };
+    if (imageBase64 && role === 'user') msg.image = imageBase64;
+    messages.push(msg);
+    saveToStorage();
+    renderMessages();
+  }
+
+  // update last assistant message (for streaming-like replacement)
+  function updateLastAssistantMessage(content) {
+    if (messages.length && messages[messages.length-1].role === 'assistant') {
+      messages[messages.length-1].content = content;
+    } else {
+      messages.push({ role: 'assistant', content });
+    }
+    saveToStorage();
+    renderMessages();
+  }
+
+  // Text-to-Speech
+  function speakResponse(text) {
+    if (currentUtterance) {
+      window.speechSynthesis.cancel();
+    }
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/\*/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    const voices = window.speechSynthesis.getVoices();
+    const preferred = voices.find(v => v.lang.includes('en') && (v.name.includes('Google') || v.name.includes('Premium'))) || voices[0];
+    if(preferred) utterance.voice = preferred;
+    currentUtterance = utterance;
+    utterance.onend = () => { currentUtterance = null; statusSpan.innerText = '✅ Ready'; };
+    utterance.onerror = () => { currentUtterance = null; statusSpan.innerText = '⚠️ Speech error'; };
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Call backend /api/chat
+  async function sendToAI(userText, image = null) {
+    statusSpan.innerText = '📡 Analyzing market...';
+    const history = messages.slice(-10).map(m => ({ role: m.role, content: m.content }));
+    const payload = { message: userText, history, image: image || null };
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`API error ${res.status}`);
+      const data = await res.json();
+      const aiReply = data.reply || "⚠️ Trading engine: no response. Check API key or try again.";
+      updateLastAssistantMessage(aiReply);
+      speakResponse(aiReply);
+      statusSpan.innerText = '🎙️ Ready';
+    } catch (err) {
+      console.error(err);
+      const errorMsg = "❗ AI service temporarily unavailable. Please ensure OpenRouter key is configured. Retry later.";
+      updateLastAssistantMessage(errorMsg);
+      statusSpan.innerText = '❌ API error';
+    }
+  }
+
+  // Handle user input with optional image
+  async function handleUserInput(messageText, imageBase64 = null) {
+    if (!messageText.trim() && !imageBase64) return;
+    const finalMsg = messageText.trim() || "Analyze this trading chart (technical analysis, support/resistance, patterns)";
+    addMessage('user', finalMsg, imageBase64);
+    // add temporary loading indicator
+    messages.push({ role: 'assistant', content: '🔍 Analyzing charts and market data...' });
+    saveToStorage();
+    renderMessages();
+    await sendToAI(finalMsg, imageBase64);
+    // remove duplicate loading if needed, but sendToAI updates last msg
+  }
+
+  // Reset all
+  function resetApp() {
+    localStorage.removeItem('omkar_trading_chat');
+    messages = [];
+    currentImageBase64 = null;
+    if (imagePreviewContainer) imagePreviewContainer.innerHTML = '';
+    if (recognition && isListening) stopListening();
+    // add default welcome
+    messages.push({
+      role: 'assistant',
+      content: `**Omkar Trading AI** reset complete.\n\nI provide technical analysis, risk strategies, real-time market structure insights. Ask me anything about crypto, equities, or forex.`
+    });
+    saveToStorage();
+    renderMessages();
+    statusSpan.innerText = '🔄 Reset done';
+    setTimeout(() => { statusSpan.innerText = '✅ Ready'; }, 1500);
+  }
+
+  function newChat() {
+    messages = [];
+    currentImageBase64 = null;
+    imagePreviewContainer.innerHTML = '';
+    if (recognition && isListening) stopListening();
+    messages.push({
+      role: 'assistant',
+      content: `**New Trading Session**\n\nHow can I assist your market analysis today? Provide voice, text, or upload a chart.`
+    });
+    saveToStorage();
+    renderMessages();
+    statusSpan.innerText = '✨ New chat ready';
+    setTimeout(() => { statusSpan.innerText = '✅ Ready'; }, 1000);
+  }
+
+  // ----- Voice handling -----
+  function startListening() {
+    if (!recognition) {
+      statusSpan.innerText = '❌ Speech not supported';
+      return;
+    }
+    try {
+      recognition.start();
+      isListening = true;
+      micBtn.classList.add('mic-active');
+      statusSpan.innerText = '🎙️ Listening...';
+      liveTranscriptSpan.innerText = '';
+      let interimTranscript = '';
+      recognition.onresult = (event) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) finalTranscript += transcript;
+          else interimTranscript = transcript;
+        }
+        if (finalTranscript) {
+          liveTranscriptSpan.innerText = finalTranscript;
+          textInput.value = finalTranscript;
+          stopListening();
+          // auto send after voice
+          const voiceMsg = textInput.value.trim();
+          if (voiceMsg) {
+            handleUserInput(voiceMsg, currentImageBase64);
+            textInput.value = '';
+            currentImageBase64 = null;
+            imagePreviewContainer.innerHTML = '';
+          }
+        } else {
+          liveTranscriptSpan.innerText = interimTranscript;
+        }
+      };
+      recognition.onerror = (e) => {
+        console.error(e);
+        statusSpan.innerText = '🎙️ Mic error, retry';
+        stopListening();
+      };
+      recognition.onend = () => {
+        if (isListening) {
+          // no final input? just stop mic
+          stopListening();
+        }
+      };
+    } catch(e) {
+      statusSpan.innerText = 'Mic permission denied';
+      stopListening();
+    }
+  }
+
+  function stopListening() {
+    if (recognition && isListening) {
+      try { recognition.stop(); } catch(e) {}
+      isListening = false;
+    }
+    micBtn.classList.remove('mic-active');
+    if (!statusSpan.innerText.includes('Analyzing')) statusSpan.innerText = '✅ Ready';
+    liveTranscriptSpan.innerText = '';
+  }
+
+  function toggleMic() {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening();
+    }
+  }
+
+  // Image handling
+  function handleImageUpload(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target.result;
+      currentImageBase64 = base64;
+      imagePreviewContainer.innerHTML = `<img src="${base64}" id="uploadPreview" style="max-width:70px; border-radius:12px; border:1px solid #2dd4bf;"> <span style="font-size:12px;">chart loaded</span>`;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // send message from text + image preview
+  async function sendMessage() {
+    const userMsg = textInput.value.trim();
+    if (!userMsg && !currentImageBase64) return;
+    await handleUserInput(userMsg, currentImageBase64);
+    textInput.value = '';
+    currentImageBase64 = null;
+    imagePreviewContainer.innerHTML = '';
+  }
+
+  // Event binding
+  sendBtn.addEventListener('click', sendMessage);
+  textInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
+  micBtn.addEventListener('click', toggleMic);
+  uploadImageBtn.addEventListener('click', () => imageUploadInput.click());
+  imageUploadInput.addEventListener('change', (e) => {
+    if(e.target.files && e.target.files[0]) handleImageUpload(e.target.files[0]);
+    imageUploadInput.value = '';
+  });
+  newChatBtn.addEventListener('click', () => { if(recognition && isListening) stopListening(); newChat(); });
+  resetAppBtn.addEventListener('click', () => { if(recognition && isListening) stopListening(); resetApp(); });
+
+  // load voices on start
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {};
+  }
+
+  loadFromStorage();
+  // UI cleanup on unload
+  window.addEventListener('beforeunload', () => {
+    if (currentUtterance) window.speechSynthesis.cancel();
+    if (recognition && isListening) recognition.abort();
+  });
+</script>
+</body>
+</html>
